@@ -1,74 +1,47 @@
 // helper: https://github.com/williamfiset/algorithms
 // https://www.baeldung.com/java-array-permutations
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 import java.util.stream.DoubleStream;
 
 public class TravellingSalesmanBruteForce {
-
-  public static Double travelingSalesman(double[][] matrix, List<List<Double>> newPermutations) {
-    int matrixLength = matrix.length;
-    int[] permutation = new int[matrixLength];
-
-    for (int i = 0; i < matrixLength; i++)
-      permutation[i] = i;
-
-    List<Double> bestTour = new ArrayList<>();
-    Double bestTourCost = Double.POSITIVE_INFINITY;
-
-    for (int i = 0; i < newPermutations.size(); i++) {
-      double[][] tours = nextPermutation(newPermutations.get(i), matrix);
-
-      double tourCost = computeCost(tours);
-
-      if (tourCost < bestTourCost) {
-        bestTourCost = tourCost;
-        bestTour = newPermutations.get(i);
-      }
-
-      // System.out.printf("Current tour %s \n", (newPermutations.get(i)));
-      // System.out.printf("Tour Cost %s \n", tourCost);
-
-      // System.out.println("\n-------------------------");
-    }
-
-    System.out.printf("Best tour -> %s \n", bestTour);
-    return bestTourCost;
-  }
-
-  public static double computeCost(double[][] matrix) {
+  public static double computeCost(int[] perms, double[][] matrix) {
     double cost = 0;
     double[] totalCost = new double[matrix.length];
-    int endTour = matrix.length - 1;
+    int endTour = perms.length - 1;
     int from = 0;
     int to = 1;
 
     while (from < endTour) {
-      double[] ptx1 = matrix[from];
-      double[] ptx2 = matrix[to];
+      int ptx1 = perms[from];
+      int ptx2 = perms[to];
 
       // Compute the Euclidiean distance of each points
-      cost = calculateEuclidianDistance(ptx1, ptx2);
+      cost = calculateEuclidianDistance(matrix[ptx1], matrix[ptx2]);
+      System.out.println(Arrays.toString(matrix[ptx1]) + "  " + Arrays.toString(matrix[ptx2]));
 
       // iterate over to the next number
       from++;
       to++;
 
       // compute the cost of the last tour with the first.
-      if (from == endTour) {
-        cost += calculateEuclidianDistance(matrix[from], matrix[0]);
-      }
+      System.out.println("cost=" + cost);
       totalCost[from] = cost;
+
+      if (from == endTour) {
+        cost = calculateEuclidianDistance(matrix[perms[from]], matrix[perms[0]]);
+        totalCost[0] = cost;
+      }
     }
     double total = DoubleStream.of(totalCost).sum();
 
+    System.out.println("\ntotal =" + total);
+    System.out.println("--------------------------------\n");
     return total;
   }
 
   private static double calculateEuclidianDistance(double[] ptx1, double[] ptx2) {
     double distance = 0;
-
     for (int i = 1; i < ptx1.length;) {
       double points = (ptx1[i] - ptx2[i]);
       distance = Math.sqrt(Math.pow(points, 2));
@@ -77,61 +50,58 @@ public class TravellingSalesmanBruteForce {
     return distance;
   }
 
-  private static void generatePermutations(List<Double> array, List<Double> currentPermutation,
-      List<List<Double>> permutations) {
-
-    if (array.size() == 0 && currentPermutation.size() > 0) {
-      permutations.add(currentPermutation);
-    } else {
-      for (int i = 0; i < array.size(); i++) {
-        List<Double> newArr = new ArrayList<Double>(array);
-        newArr.remove(i);
-        List<Double> newCurrentPermutation = new ArrayList<Double>(currentPermutation);
-        newCurrentPermutation.add(array.get(i));
-        generatePermutations(newArr, newCurrentPermutation, permutations);
-      }
-    }
+  public static boolean nextPermutation(int[] sequence) {
+    int first = getFirst(sequence);
+    if (first == -1)
+      return false;
+    int toSwap = sequence.length - 1;
+    while (sequence[first] >= sequence[toSwap])
+      --toSwap;
+    swap(sequence, first++, toSwap);
+    toSwap = sequence.length - 1;
+    while (first < toSwap)
+      swap(sequence, first++, toSwap--);
+    return true;
   }
 
-  private static List<List<Double>> generatePermutations(List<Double> array) {
-    List<List<Double>> permutations = new ArrayList<List<Double>>();
-    generatePermutations(array, new ArrayList<Double>(), permutations);
-    return permutations;
+  private static int getFirst(int[] sequence) {
+    for (int i = sequence.length - 2; i >= 0; --i)
+      if (sequence[i] < sequence[i + 1])
+        return i;
+    return -1;
   }
 
-  public static double[][] nextPermutation(List<Double> seq, double[][] matrix) {
-    double[][] perm = new double[matrix.length][matrix.length];
-
-    // pointer starting at the seq
-    int seqIdx = 0;
-    // pointer starting at the matrix
-    int matrixIdx = 0;
-
-    while (matrixIdx < matrix.length) {
-      if (matrix[matrixIdx][0] != seq.get(seqIdx)) {
-        seqIdx += 1;
-      } else if (matrix[matrixIdx][0] == seq.get(seqIdx)) {
-        perm[seqIdx] = matrix[matrixIdx];
-        seqIdx = 0;
-        matrixIdx += 1;
-      }
-    }
-
-    return perm;
+  private static void swap(int[] sequence, int i, int j) {
+    int tmp = sequence[i];
+    sequence[i] = sequence[j];
+    sequence[j] = tmp;
   }
 
   public static void main(String[] args) throws Exception {
     double[][] matrix = { { 1, 1, 1 }, { 2, 5, 5 }, { 3, 10, 3 }, { 4, 2, 7 } };
-    int matrixLength = matrix.length;
-    List<Double> mainPermutation = new ArrayList<Double>(matrixLength);
 
+    int[] perm = new int[matrix.length];
     for (int i = 0; i < matrix.length; i++)
-      mainPermutation.add(matrix[i][0]);
+      perm[i] = i;
 
-    List<List<Double>> newPermutations = generatePermutations(mainPermutation);
-    System.out.println(newPermutations);
+    double[][] bestTour = matrix.clone();
+    Double bestTourCost = Double.POSITIVE_INFINITY;
 
-    Double bestTourCost = travelingSalesman(matrix, newPermutations);
-    System.out.printf("Best distance -> %s", bestTourCost);
+    do {
+      double tourCost = computeCost(perm, matrix);
+
+      if (tourCost < bestTourCost) {
+        bestTourCost = tourCost;
+        bestTour = matrix.clone();
+      }
+
+    } while (nextPermutation(perm));
+
+    int[] tours = new int[matrix.length];
+    for (int i = 0; i < matrix.length; i++)
+      tours[i] = (int) bestTour[i][0];
+
+    System.out.printf("Overall Tour -> %s \n", Arrays.toString(tours));
+    System.out.printf("Best tour %s ", bestTourCost);
   }
 }
