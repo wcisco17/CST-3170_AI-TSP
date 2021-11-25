@@ -1,5 +1,3 @@
-// helper: https://github.com/williamfiset/algorithms
-// https://www.baeldung.com/java-array-permutations
 
 import java.util.Arrays;
 import java.util.stream.DoubleStream;
@@ -12,13 +10,14 @@ public class TravellingSalesmanBruteForce {
     int from = 0;
     int to = 1;
 
+    System.out.printf("Current Tour %s \n", Arrays.toString(perms));
     while (from < endTour) {
       int ptx1 = perms[from];
       int ptx2 = perms[to];
 
       // Compute the Euclidiean distance of each points
       cost = calculateEuclidianDistance(matrix[ptx1], matrix[ptx2]);
-      System.out.println(Arrays.toString(matrix[ptx1]) + "  " + Arrays.toString(matrix[ptx2]));
+      System.out.println("\n" + Arrays.toString(matrix[ptx1]) + "  " + Arrays.toString(matrix[ptx2]));
 
       // iterate over to the next number
       from++;
@@ -80,6 +79,13 @@ public class TravellingSalesmanBruteForce {
   public static void main(String[] args) throws Exception {
     double[][] matrix = { { 1, 1, 1 }, { 2, 5, 5 }, { 3, 10, 3 }, { 4, 2, 7 } };
 
+    double[][] test__2 = { { 1, 38, 20 }, { 2, 39, 26 }, { 3, 40, 25 }, { 4, 36, 23 }, { 5, 38, 13 }, { 6, 37, 20 },
+        { 7, 41, 9 }, { 8, 36, -5 } };
+
+    double[][] test_one_2019 = { { 1, 1357, 1905 }, { 2, 2650, 802 }, { 3, 1774, 107 }, { 4, 1307, 964 },
+        { 5, 3806, 746 }, { 6, 2687, 1353 }, { 7, 43, 1957 }, { 8, 3092, 1668 }, { 9, 185, 1542 }, { 10, 834, 629 },
+        { 11, 40, 462 } };
+
     int[] perm = new int[matrix.length];
     for (int i = 0; i < matrix.length; i++)
       perm[i] = i;
@@ -97,11 +103,7 @@ public class TravellingSalesmanBruteForce {
 
     } while (nextPermutation(perm));
 
-    int[] tours = new int[matrix.length];
-    for (int i = 0; i < matrix.length; i++)
-      tours[i] = (int) bestTour[i][0];
-
-    System.out.printf("Overall Tour -> %s \n", Arrays.toString(tours));
+    System.out.printf("Overall Tour -> %s \n", Arrays.toString(perm));
     System.out.printf("Best tour %s ", bestTourCost);
   }
 }
